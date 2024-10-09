@@ -16,7 +16,7 @@ AC_ARG_WITH(fuse,
 	[  --with-fuse=DIR	specify location of fuse],
 	[fuseinst="$withval"])
 
-CPPFLAGS="$CPPFLAGS -I${fuseinst}/include"
+CPPFLAGS="$CPPFLAGS -I${fuseinst}/include -Wno-unused-parameter -Wno-unused-variable -Wno-shift-negative-value -Wno-implicit-fallthrough -Wno-pointer-sign -Wno-shift-negative-value"
 LDFLAGS="$LDFLAGS -L${fuseinst}/lib"
 
 AC_MSG_CHECKING([fuse installation])

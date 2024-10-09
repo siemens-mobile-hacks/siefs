@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-AM_CFLAGS = -I$(fuseinst)/include -DFUSEINST="\"$(fuseinst)\"" -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=22
+AM_CPPFLAGS = -I$(fuseinst)/include -DFUSEINST="\"$(fuseinst)\"" -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=22
 
 bin_PROGRAMS = siefs slink
 

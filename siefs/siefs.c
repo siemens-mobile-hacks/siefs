@@ -21,6 +21,7 @@
 #include "obex.h"
 
 #include "config.h"
+#include "charset.h"
 
 //#define DBG(x...) fprintf(stderr, x); 
 #define DBG(x...)
@@ -95,12 +96,10 @@ static void invalidate() {
 	g_lastscan = 0;
 }
 
-static char *new_ascii2utf(char *s) {
-
+static char *new_ascii2utf(const char *s) {
 	int size = strlen(s) * 3;
 	char *r = malloc(size + 1);
 	return ascii2utf(s, r, size);
-
 }
 
 static void refill(fuse_dirh_t h, fuse_dirfil_t filler) {
@@ -122,14 +121,14 @@ static void refill(fuse_dirh_t h, fuse_dirfil_t filler) {
     }
 }
 
-static int getdir(const char *path, fuse_dirh_t h, fuse_dirfil_t filler) {
+static int getdir(const char *ascii_path, fuse_dirh_t h, fuse_dirfil_t filler) {
 
 	time_t t;
 	int d, n, allocd;
 	obexdirentry *de;
 	int res = 0;
 
-	path = new_ascii2utf(path);
+	char *path = new_ascii2utf(ascii_path);
 
 	d = (g_operation == SIEFS_IDLE) ? 2 : 5;
 	t = time(NULL);
@@ -169,12 +168,12 @@ static int getdir(const char *path, fuse_dirh_t h, fuse_dirfil_t filler) {
 	return 0;
 }
 
-static int siefs_getdir(const char *path, fuse_dirh_t h, fuse_dirfil_t filler)
+static int siefs_getdir(const char *ascii_path, fuse_dirh_t h, fuse_dirfil_t filler)
 {
     int res;
 
-	DBG("[getdir %s ..", path);
-	path = new_ascii2utf(path);
+	DBG("[getdir %s ..", ascii_path);
+	char *path = new_ascii2utf(ascii_path);
 	res = getdir(path, h, filler);
 	free(path);
 	DBG(" = %i]\n", res);
@@ -182,13 +181,13 @@ static int siefs_getdir(const char *path, fuse_dirh_t h, fuse_dirfil_t filler)
 	return res;
 }
 
-static int siefs_getattr(const char *path, struct stat *stbuf)
+static int siefs_getattr(const char *ascii_path, struct stat *stbuf)
 {
 	int i, l;
     int res = 0;
 	char *s, *newdir, *item;
 
-	path = new_ascii2utf(path);
+	char *path = new_ascii2utf(ascii_path);
 	l = strlen(path);
 	if (*path == '/' && *(path+1) == '\0') {
 
@@ -232,12 +231,12 @@ static int siefs_getattr(const char *path, struct stat *stbuf)
 	return res;
 }
 
-static int siefs_mkdir(const char *path, mode_t mode)
+static int siefs_mkdir(const char *ascii_path, mode_t mode)
 {
 	int res = 0;
 
-	DBG("[mkdir %s ..", path);
-	path = new_ascii2utf(path);
+	DBG("[mkdir %s ..", ascii_path);
+	char *path = new_ascii2utf(ascii_path);
 	STARTFREQ;
 	if (obex_mkdir(g_os, (char *)path) < 0)
 		res = -errno;
@@ -249,12 +248,12 @@ static int siefs_mkdir(const char *path, mode_t mode)
     return res;
 }
 
-static int siefs_unlink(const char *path)
+static int siefs_unlink(const char *ascii_path)
 {
 	int res = 0;
 
-	DBG("[unlink %s ..", path);
-	path = new_ascii2utf(path);
+	DBG("[unlink %s ..", ascii_path);
+	char *path = new_ascii2utf(ascii_path);
 	STARTFREQ;
 	if (obex_delete(g_os, (char *)path) < 0)
 		res = -errno;
@@ -271,12 +270,12 @@ static int siefs_rmdir(const char *path)
     return siefs_unlink(path);
 }
 
-static int siefs_truncate(const char *path, off_t size)
+static int siefs_truncate(const char *ascii_path, off_t size)
 {
 	int res = 0;
 
-	DBG("[truncate %s=%i ..", path, (int)size);
-	path = new_ascii2utf(path);
+	DBG("[truncate %s=%i ..", ascii_path, (int)size);
+	char *path = new_ascii2utf(ascii_path);
 	STARTFREQ;
 	if (obex_delete(g_os, (char *)path) != 0) {
 		res = -errno;
@@ -293,13 +292,13 @@ static int siefs_truncate(const char *path, off_t size)
     return res;
 }
 
-static int siefs_rename(const char *from, const char *to)
+static int siefs_rename(const char *ascii_from, const char *ascii_to)
 {
 	int res = 0;
 
-	DBG("[rename %s->%s ..", from, to);
-	from = new_ascii2utf(from);
-	to = new_ascii2utf(to);
+	DBG("[rename %s->%s ..", ascii_from, ascii_to);
+	char *from = new_ascii2utf(ascii_from);
+	char *to = new_ascii2utf(ascii_to);
 	STARTFREQ;
 	if (obex_move(g_os, (char *)from, (char *)to) < 0)
 		res = -errno;
@@ -312,7 +311,7 @@ static int siefs_rename(const char *from, const char *to)
     return res;
 }
 
-static int siefs_mknod(const char *path, mode_t mode, dev_t rdev)
+static int siefs_mknod(const char *ascii_path, mode_t mode, dev_t rdev)
 {
 	int res = 0;
 	long t;
@@ -324,8 +323,8 @@ static int siefs_mknod(const char *path, mode_t mode, dev_t rdev)
 	if (STARTSESSION != 0)
 		return -EBUSY;
 
-	DBG("[mknod %s(%08o)..", path, mode);
-	path = new_ascii2utf(path);
+	DBG("[mknod %s(%08o)..", ascii_path, mode);
+	char *path = new_ascii2utf(ascii_path);
 	STARTXFER;
 	if (obex_put(g_os, (char *)path) < 0) {
 		res = -errno;
@@ -341,12 +340,12 @@ static int siefs_mknod(const char *path, mode_t mode, dev_t rdev)
 	return res;
 }
 
-static int siefs_open(const char *path, struct fuse_file_info *finfo)
+static int siefs_open(const char *ascii_path, struct fuse_file_info *finfo)
 {
 	int res = 0;
 
-	DBG("[open %s,%04x ..", path, finfo->flags);
-	path = new_ascii2utf(path);
+	DBG("[open %s,%04x ..", ascii_path, finfo->flags);
+	char *path = new_ascii2utf(ascii_path);
 	switch (finfo->flags & O_ACCMODE) {
 		case O_RDONLY:
 			if (STARTSESSION != 0) {
@@ -396,10 +395,10 @@ static int siefs_open(const char *path, struct fuse_file_info *finfo)
 	return res;
 }
 
-static int siefs_close(const char *path, struct fuse_file_info *finfo) 
+static int siefs_close(const char *ascii_path, struct fuse_file_info *finfo)
 {
-	DBG("[close %s ..", path);
-	path = new_ascii2utf(path);
+	DBG("[close %s ..", ascii_path);
+	char *path = new_ascii2utf(ascii_path);
 	if (g_operation != SIEFS_IDLE && strcasecmp(path, g_currentfile) == 0) {
 		STARTXFER;
 		obex_close(g_os);
@@ -416,13 +415,13 @@ static int siefs_close(const char *path, struct fuse_file_info *finfo)
     return 0;
 }
 
-static int siefs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *finfo)
+static int siefs_read(const char *ascii_path, char *buf, size_t size, off_t offset, struct fuse_file_info *finfo)
 {
 	int n, position;
 	int r=0;
 
-	DBG("[read %s,%i ..", path, size);
-	path = new_ascii2utf(path);
+	DBG("[read %s,%i ..", ascii_path, size);
+	char *path = new_ascii2utf(ascii_path);
 
 	if (g_operation != SIEFS_GET || strcasecmp(path, g_currentfile) != 0) {
 		free(path);
@@ -453,13 +452,13 @@ static int siefs_read(const char *path, char *buf, size_t size, off_t offset, st
 	return n;
 }
 
-static int siefs_write(const char *path, const char *buf, size_t size,
+static int siefs_write(const char *ascii_path, const char *buf, size_t size,
                      off_t offset, struct fuse_file_info *finfo)
 {
 	int n;
 
-	DBG("[write %s,%i ..", path, size);
-	path = new_ascii2utf(path);
+	DBG("[write %s,%i ..", ascii_path, size);
+	char *path = new_ascii2utf(ascii_path);
 
 	if (g_operation != SIEFS_PUT || strcasecmp(path, g_currentfile) != 0) {
 		free(path);
@@ -610,7 +609,7 @@ int main(int argc, char *argv[])
 	int i, j, path_size;
 	pid_t pid;
 	char default_comm[] = "/dev/mobile";
-	char *mntpoint;
+	char *mntpoint = NULL;
 
 	p = strrchr(argv[0], '/');
 	p = (p == NULL) ? argv[0] : p+1;

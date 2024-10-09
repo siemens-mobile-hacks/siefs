@@ -16,10 +16,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
+#include <ctype.h>
 #include "transport.h"
 #include "obex.h"
 
 #define TIMEOUT 70
+
+int abort_exchange(obexsession *os);
 
 void set_errno(unsigned char obex_response) {
 

@@ -10,15 +10,9 @@
 #include "config.h"
 #include "proto.h"
 
-#ifdef	HAS_STDLIB_H
-#	include	<stdlib.h>
-#else
-#	ifdef	HAS_MALLOC_H
-#		include 	<malloc.h>
-#	else
-		extern void free();
-#	endif
-#endif
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 void gsm_destroy P1((S), gsm S)
 {

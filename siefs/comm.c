@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <string.h>
 #include "comm.h"
 
 #define DEFSPEED 19200

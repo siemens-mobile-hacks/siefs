@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include "obex.h"
 

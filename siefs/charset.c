@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 static unsigned short c2u_cp1250[128] = {
 	0x20ac, 0x0000, 0x201a, 0x0000,
@@ -1164,10 +1165,10 @@ static struct {
 unsigned short *c2u_table;
 unsigned char *u2c_table;
 
-int init_charset(char *name) {
+int init_charset(const char *name) {
 
 	char *sname;
-	int i, j;
+	int j;
 	unsigned short c;
 
 	if (c2u_table) free(c2u_table);
@@ -1176,7 +1177,7 @@ int init_charset(char *name) {
 	u2c_table = NULL;
 
 	sname = strdup(name);
-	for (i=0; i<strlen(sname); i++) {
+	for (size_t i=0; i<strlen(sname); i++) {
 		if (! isalnum(sname[i])) sname[i] = '_';
 	}
 
@@ -1184,7 +1185,7 @@ int init_charset(char *name) {
 		return 1;
 	}
 	
-	for (i=0; nls_list[i].name != NULL; i++) {
+	for (size_t i=0; nls_list[i].name != NULL; i++) {
 		if (strcasecmp(sname, nls_list[i].name) == 0) {
 			c2u_table = (unsigned short *)malloc(256 * 2);
 			u2c_table = (unsigned char *)malloc(65536);
@@ -1205,7 +1206,7 @@ int init_charset(char *name) {
 	return 0;
 }
 
-char *utf2ascii(char *src, char *dest, int size) {
+char *utf2ascii(const char *src, char *dest, int size) {
 
 	unsigned char c;
 	unsigned short s;
@@ -1241,7 +1242,7 @@ char *utf2ascii(char *src, char *dest, int size) {
 
 }
 
-char *ascii2utf(char *src, char *dest, int size) {
+char *ascii2utf(const char *src, char *dest, int size) {
 
 	unsigned char c;
 	unsigned short s;
