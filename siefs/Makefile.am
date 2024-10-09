@@ -12,4 +12,4 @@ slink_SOURCES = slink.c obex.c obex.h transport.c transport.h comm.c comm.h \
 LDADD = -lfuse -lpthread
 
 install-exec-hook:
-	-install -m755 -s $(DESTDIR)$(bindir)/siefs /usr/binmount.siefs
+	-install -m755 -s $(DESTDIR)$(bindir)/siefs /usr/bin/mount.siefs
